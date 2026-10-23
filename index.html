@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>PSPCL RDSS JSR Mobile Engine</title>
+  <style>
+    * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; }
+    body { background: #eef2f5; margin: 0; padding: 10px; color: #2d3748; }
+    .header-box { background: #1a365d; color: white; padding: 14px; border-radius: 10px; text-align: center; margin-bottom: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.15); }
+    .card { background: white; border-radius: 10px; padding: 14px; margin-bottom: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+    .card-title { font-size: 14px; font-weight: bold; color: #1a365d; border-bottom: 2px solid #edf2f7; padding-bottom: 8px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
+    
+    .upload-zone { background: #ebf8ff; border: 2px dashed #3182ce; border-radius: 8px; padding: 14px; text-align: center; }
+    .btn-row { display: flex; gap: 8px; justify-content: center; margin-top: 8px; flex-wrap: wrap; }
+    .upload-btn { background: #3182ce; color: white; border: none; padding: 11px 18px; border-radius: 6px; font-weight: bold; cursor: pointer; box-shadow: 0 2px 4px rgba(49,130,206,0.3); font-size: 13px; }
+    .load-btn { background: #2f855a; color: white; border: none; padding: 11px 22px; border-radius: 6px; font-weight: bold; cursor: pointer; box-shadow: 0 2px 4px rgba(47,133,90,0.3); font-size: 14px; }
+    
+    .form-group { margin-bottom: 10px; }
+    label { display: block; font-size: 11px; font-weight: 700; color: #4a5568; margin-bottom: 4px; text-transform: uppercase; }
+    input, select { width: 100%; padding: 9px 10px; border: 1px solid #cbd5e0; border-radius: 6px; font-size: 14px; background: #fff; }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    
+    .item-card { background: #f8fafc; border: 1px solid #cbd5e0; border-radius: 8px; padding: 10px; margin-bottom: 10px; }
+    .item-title { font-size: 13px; font-weight: 700; color: #1a202c; margin-bottom: 6px; }
+    .input-row { display: grid; gap: 6px; }
+    .input-row-4 { grid-template-columns: 1fr 1fr 1fr 1fr; }
+    .input-row-3 { grid-template-columns: 1fr 1fr 1fr; }
+    .input-row-2 { grid-template-columns: 1fr 1fr; }
+    .sub-box { display: flex; flex-direction: column; }
+    .sub-box span { font-size: 10px; font-weight: 700; color: #4a5568; margin-bottom: 2px; text-align: center; }
+    .sub-box input { text-align: center; font-weight: 600; padding: 7px; }
+    
+    .btn { display: block; width: 100%; padding: 14px; border: none; border-radius: 8px; font-size: 15px; font-weight: bold; cursor: pointer; text-align: center; }
+    .btn-save { background: #2b6cb0; color: white; margin-top: 14px; }
+    .btn-export { background: #2f855a; color: white; margin-top: 10px; }
+    .btn-danger { background: #e53e3e; color: white; padding: 6px 12px; font-size: 11px; border-radius: 4px; cursor: pointer; border: none; }
+    
+    .btn-edit-row { background: #3182ce; color: white; border: none; padding: 4px 8px; border-radius: 4px; font-size: 11px; cursor: pointer; font-weight: bold; }
+    .btn-del-row { background: #e53e3e; color: white; border: none; padding: 4px 7px; border-radius: 4px; font-size: 11px; cursor: pointer; }
+    
+    .table-container { overflow-x: auto; max-height: 420px; overflow-y: auto; margin-top: 10px; border: 1px solid #cbd5e0; border-radius: 6px; }
+    table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    th, td { border: 1px solid #cbd5e0; padding: 8px 6px; text-align: center; white-space: nowrap; }
+    th { background: #edf2f7; color: #2d3748; position: sticky; top: 0; z-index: 1; }
+  </style>
+</head>
+<body>
+
+  <div class="header-box">
+    <h2 style="margin:0 0 4px 0; font-size:18px;">RDSS 11KV Joint Survey Report App</h2>
+    <p style="margin:0; font-size:11px; opacity:0.85;">Connected to Cloud Engine (FastAPI & pdfplumber)</p>
+  </div>
+
+  <div class="card">
+    <div class="card-title">AutoCAD Drawing PDF Upload</div>
+    <div class="upload-zone">
+      <p style="margin:0 0 6px 0; font-size:12px; font-weight:600;">Drawing PDF select karein aur LOAD DATA dabayein:</p>
+      
+      <input type="file" id="pdf_file_input" accept=".pdf" style="display:none;" onchange="onFileSelected(event)">
+      <div class="btn-row">
+        <button type="button" class="upload-btn" onclick="document.getElementById('pdf_file_input').click()">📁 UPLOAD AUTOCAD PDF</button>
+        <button type="button" class="load-btn" onclick="sendPdfToBackend()">⚡ LOAD DATA</button>
+      </div>
+
+      <div id="pdf_status" style="font-size:12px; margin-top:8px; font-weight:bold; color:#2b6cb0;">
+        Kripya koi AutoCAD PDF select karein.
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Feeder & Site Information</div>
+    <div class="grid-2">
+      <div class="form-group">
+        <label>Division</label>
+        <input type="text" id="division" value="">
+      </div>
+      <div class="form-group">
+        <label>Sub-Division</label>
+        <input type="text" id="subdivision" value="">
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Feeder Name</label>
+      <input type="text" id="feeder" value="">
+    </div>
+    <div class="form-group">
+      <label>Work Order / Date</label>
+      <input type="text" id="wo_no" value="105-A&B/RDSS/TE-94/EIC/DP/2024-2025/MUKTSAR DATE:-16.06.2025">
+    </div>
+  </div>
+
+  <div class="card" id="pole_entry_card">
+    <div class="card-title">
+      <span id="form_mode_title">Pole & Conductor Entry</span>
+    </div>
+    
+    <div class="grid-2">
+      <div class="form-group">
+        <label>Pole No. / Feature</label>
+        <input type="text" id="pole_no" value="" placeholder="e.g. P1">
+      </div>
+      <div class="form-group">
+        <label>Span (Mtr)</label>
+        <input type="number" id="span_len" placeholder="e.g. 48" oninput="calcConductor()">
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>Size of ACSR</label>
+      <select id="acsr_type" onchange="calcConductor()">
+        <option value="SQUIRREL">ACSR SQUIRREL (13mm2)</option>
+        <option value="WEASEL" selected>ACSR WEASEL (20mm2)</option>
+        <option value="RABBIT">ACSR RABBIT (50mm2)</option>
+      </select>
+    </div>
+
+    <div class="grid-2">
+      <div class="form-group">
+        <label>Existing Wires</label>
+        <input type="number" id="wires_ext" value="3" oninput="calcConductor()">
+      </div>
+      <div class="form-group">
+        <label>To Be Dismantled Wires</label>
+        <input type="number" id="wires_dis" value="3" oninput="calcConductor()">
+      </div>
+    </div>
+    <div id="conductor_calc" style="font-size:11px; color:#2b6cb0; font-weight:600; margin-top:2px;"></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">
+      <span id="survey_records_header">Survey Records</span>
+      <button class="btn-danger" onclick="clearTable()">Clear Table</button>
+    </div>
+
+    <div style="display:flex; justify-content:space-around; background:#ebf8ff; padding:10px; border-radius:6px; margin-bottom:8px;">
+      <div><b>Total Spans:</b> <span id="stat_spans" style="color:#2f855a; font-size:15px;">0</span></div>
+      <div><b>Total Route Length:</b> <span id="stat_length" style="color:#c53030; font-size:15px;">0 m</span></div>
+    </div>
+
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr>
+            <th>Action</th>
+            <th>Sr No</th>
+            <th>Pole / Structure</th>
+            <th>Incoming Span (M)</th>
+            <th>ACSR Type</th>
+            <th>Ext Wires</th>
+            <th>Dism Wires</th>
+          </tr>
+        </thead>
+        <tbody id="table_body">
+          <tr><td colspan="7" style="padding:15px; color:#718096;">AutoCAD Drawing PDF select karein aur LOAD DATA dabayein.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <button type="button" class="btn btn-export" onclick="exportToExcel()">EXPORT EXCEL SHEET (.CSV)</button>
+  </div>
+
+<script>
+  const BACKEND_URL = "/api/parse-drawing";
+  let records = [];
+  let currentFile = null;
+
+  function onFileSelected(e) {
+    if (e.target.files && e.target.files[0]) {
+      currentFile = e.target.files[0];
+      document.getElementById('pdf_status').innerHTML = `Selected: <b>${currentFile.name}</b>. Ab LOAD DATA dabayein!`;
+    }
+  }
+
+  async function sendPdfToBackend() {
+    if (!currentFile) { alert("Drawing PDF select karein!"); return; }
+    const statusEl = document.getElementById('pdf_status');
+    statusEl.innerHTML = `Drawing analyze ho rahi hai...`;
+
+    const formData = new FormData();
+    formData.append("file", currentFile);
+
+    try {
+      const response = await fetch(BACKEND_URL, { method: "POST", body: formData });
+      if (!response.ok) throw new Error("Status " + response.status);
+      const data = await response.json();
+
+      document.getElementById('division').value = data.division || "";
+      document.getElementById('subdivision').value = data.subdivision || "";
+      document.getElementById('feeder').value = data.feeder || currentFile.name.replace(".pdf", "");
+      if (data.wo_no) document.getElementById('wo_no').value = data.wo_no;
+
+      records = (data.records || []).map(r => ({
+        poleNo: r.poleNo,
+        span: r.span || "",
+        acsrType: r.acsrType || "WEASEL",
+        extWires: r.extWires || 3,
+        disWires: r.disWires || 3
+      }));
+
+      refreshView();
+      statusEl.innerHTML = `✔ ${data.feeder} loaded successfully! (${records.length} spans)`;
+    } catch (err) {
+      statusEl.innerHTML = `Error: Server connect nahi hua.`;
+    }
+  }
+
+  function refreshView() {
+    let count = 0, total = 0;
+    records.forEach(r => {
+      let s = parseFloat(r.span);
+      if (!isNaN(s) && s > 0) { count++; total += s; }
+    });
+    document.getElementById('stat_spans').innerText = count;
+    document.getElementById('stat_length').innerText = total.toFixed(1) + " m (" + (total/1000).toFixed(3) + " Ckt.Km)";
+
+    const tbody = document.getElementById('table_body');
+    if (!records.length) {
+      tbody.innerHTML = '<tr><td colspan="7" style="padding:15px; color:#718096;">Koi data loaded nahi hai.</td></tr>';
+      return;
+    }
+
+    tbody.innerHTML = records.map((r, i) => `<tr>
+      <td><button class="btn-del-row" onclick="records.splice(${i},1);refreshView();">🗑️</button></td>
+      <td><b>${i+1}</b></td>
+      <td><b>${r.poleNo}</b></td>
+      <td><b style="color:#2b6cb0;">${r.span ? r.span + ' m' : '-'}</b></td>
+      <td>${r.acsrType}</td>
+      <td>${r.extWires}</td>
+      <td>${r.disWires}</td>
+    </tr>`).join('');
+  }
+
+  function clearTable() {
+    records = [];
+    refreshView();
+  }
+
+  function exportToExcel() {
+    if (!records.length) { alert("Data nahi hai!"); return; }
+    let csv = '"Sr No","Pole Number","Incoming Span (M)","ACSR Type"\n';
+    records.forEach((r, i) => { csv += `"${i+1}","${r.poleNo}","${r.span}","${r.acsrType}"\n`; });
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = (document.getElementById('feeder').value || "JSR") + ".csv";
+    link.click();
+  }
+</script>
+</body>
+</html>
