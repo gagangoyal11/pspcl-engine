@@ -3,6 +3,7 @@ import re
 import math
 from fastapi import FastAPI, File, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
 import pdfplumber
 
 app = FastAPI(title="PSPCL RDSS AutoCAD JSR Engine")
@@ -17,7 +18,8 @@ app.add_middleware(
 
 @app.get("/")
 def read_root():
-    return {"status": "online", "message": "PSPCL JSR Vector Engine is running"}
+    return FileResponse("index.html")
+
 
 def parse_autocad_pdf(file_path):
     with pdfplumber.open(file_path) as pdf:
